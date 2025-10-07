@@ -27,7 +27,7 @@ try:
   while True:
     t = time.time()
     state = GPIO.input(inputPin)	# check pin 25 for direction
-    if state == HIGH:
+    if state == 1:
       direction = -1
     else:
       direction = 1 
