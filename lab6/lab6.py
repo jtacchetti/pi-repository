@@ -3,25 +3,25 @@ import random
 import RPi.GPIO as GPIO
 from shifter import Shifter
 
-shifter = Shifter(23, 24, 25)
+shifter = Shifter(23, 24, 25)	# data, latch, clock
 
 position = 0 	# initial position at 0
 n = 8 			# 8 LEDs
-delay = 0.05
-print(f'Setup data pins')
+delay = 0.05	# delay 0.05 sec for each step
 try:
 	while True:
 		pattern = 1 << position
 		shifter.shiftByte(pattern)
-		print(f'shifting byte')
-		step_direction  = random.choice([-1,1])
-		new_position = position + step_direction
-		print(f'decided on direction')
+		step_direction  = random.choice([-1,1])		# decide on a direction
+		new_position = position + step_direction	# apply direction to new position
+
+		# correct position if out-of-bounds
 		if new_position < 0:
 			new_position = 1
 		elif new_position >= n:
 			new_position = n - 2
-		print(f'delaying')
+		
+		# update position and delay
 		position = new_position
 		time.sleep(delay)
 
