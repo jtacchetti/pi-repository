@@ -4,6 +4,8 @@ import RPi.GPIO as GPIO
 from shifter import Shifter
 import threading
 
+GPIO.setmode(GPIO.BCM)
+
 class Bug:
 	def __init__(self,timestep=0.1,x=3,isWrapOn=False):
 		self.timestep = timestep
@@ -49,7 +51,6 @@ class Bug:
 S1 = 5
 S2 = 6
 S3 = 13
-GPIO.setmode(GPIO.BCM)
 GPIO.setup(S1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(S2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(S3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
