@@ -35,7 +35,7 @@ class Bug:
 		
 				# update position and delay
 				self.x = new_position
-				time.sleep(delay)
+				time.sleep(self.timestep)
 
 		except KeyboardInterrupt:
 			self.stop()
