@@ -19,7 +19,10 @@ class Bug:
 		self.__shifter.shiftByte(pattern)
 
 	def start(self):
-		self.__running = True
+		if not self.__running:
+			self.__running = True
+			threading.Thread(target=self.__run,daemon=True).start()
+	def __run(self):
 		try:
 			while self.__running:
 				self.__update_led()
@@ -45,7 +48,6 @@ class Bug:
 	def stop(self):
 		self.__running = False
 		self.__shifter.shiftByte(0)
-		GPIO.cleanup()
 
 # SETUP
 S1 = 5
@@ -81,7 +83,7 @@ try:
 		if s2 != last_s2:		# s2 changed
 			if s2: 				# the switch is on
 				bug.isWrapOn = not bug.isWrapOn
-				print(f'WRAP MODE TOGGLED to {bug.isRrapOn}')
+				print(f'WRAP MODE TOGGLED to {bug.isWrapOn}')
 			last_s2 = s2 		# update last_s2
 
 
@@ -94,4 +96,5 @@ try:
 
 except KeyboardInterrupt:
 	bug.stop()
+	GPIO.cleanup()
 	print(f'Exiting...')
