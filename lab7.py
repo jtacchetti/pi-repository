@@ -37,7 +37,7 @@ def html_generator():
 
 HOST = ''
 PORT = 8080
-ip = socket.gethostbyname(socket.gethostname())
+ip = os.popen("hostname -I").read().split()[0]
 print(f"Server running at http://{ip}:{PORT}/")
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
