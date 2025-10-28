@@ -18,19 +18,41 @@ def html_generator():
   html = f"""<!DOCTYPE html>
 <html>
 <head>
-  <title>LED BRIGHTNESS CONTROLLER</title>
+  <title>LED Brightness Controller</title>
 </head>
 <body>
   <h3>Brightness Level</h3>
-  <form method="POST">
-    <input type="range" name="level" min="0" max="100" value="0"><br><br>
+  <div class="slider-container">
+    <span class="label">LED 1</span>
+    <input type="range" min"0" max="100" value="{brightness[0]}" id="led0" oninput="updateLED(0)">
+    <span class="value" id="val0">{brightness[0]}</span>
+  </div>
 
-    <b>Select LED:</b><br>
-    <input type="radio" name="led" value="0" checked> LED 1 ({brightness[0]}%)<br>
-    <input type="radio" name="led" value="1"> LED 2 ({brightness[1]}%)<br>
-    <input type="radio" name="led" value="2"> LED 3 ({brightness[2]}%)<br><br>
-    <input type="submit" value="Change Brightness">
-  </form>
+  <div class="slider-container">
+    <span class="label">LED 2</span>
+    <input type="range" min"0" max="100" value="{brightness[1]}" id="led1" oninput="updateLED(1)">
+    <span class="value" id="val1">{brightness[1]}</span>
+  </div>
+
+  <div class="slider-container">
+    <span class="label">LED 3</span>
+    <input type="range" min"0" max="100" value="{brightness[2]}" id="led2" oninput="updateLED(2)">
+    <span class="value" id="val2">{brightness[2]}</span>
+  </div>
+
+<script>
+function updateLED(idx) {{
+  let val = document.getElementById("led" + idx).value;
+  document.getElementById("val" + idx).innerText = val;
+
+  fetch("/", {{
+    method: "POST",
+    header: {{ "Content-Type": "application/x-www.form-urlencoded" }},
+    body: "led=" + idx + "&level=" + val
+  }});
+}}
+</script>
+  
 </body>
 </html>"""
   return html
