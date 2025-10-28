@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import socket
 from urllib.parse import parse_qs
+import os
 
 GPIO.setmode(GPIO.BCM)
 LEDpins = [16, 20, 21]
