@@ -118,6 +118,17 @@ if __name__ == '__main__':
     m1 = Stepper(s, lock1)
     m2 = Stepper(s, lock2)
 
+    m1.zero()
+    m2.zero()
+    m1.goAngle(90)
+    m1.goAngle(-45)
+    m2.goAngle(-90)
+    m2.goAngle(45)
+    m1.goAngle(-135)
+    m1.goAngle(135)
+    m1.goAngle(0)
+    # below is old commands
+    """
     # Zero the motors:
     m1.zero()
     m2.zero()
@@ -135,9 +146,9 @@ if __name__ == '__main__':
     m2.rotate(-45)
     m2.rotate(45)
     m2.rotate(-90)
- 
     # While the motors are running in their separate processes, the main
-    # code can continue doing its thing: 
+    # code can continue doing its thing:
+    """
     try:
         while True:
             pass
