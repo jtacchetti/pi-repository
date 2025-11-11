@@ -60,7 +60,7 @@ class Stepper:
         mask = 0b1111 << self.shifter_bit_start    # clear bits for this motor
         Stepper.shifter_outputs &= ~mask
         Stepper.shifter_outputs |= (Stepper.seq[self.step_state] << self.shifter_bit_start)
-        self.locl.acquire()
+        self.lock.acquire()
         try:
             self.s.shiftByte(Stepper.shifter_outputs)
         finally:
