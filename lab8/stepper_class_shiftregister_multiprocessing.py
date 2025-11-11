@@ -8,6 +8,7 @@
 
 import time
 import multiprocessing
+import random
 from shifter import Shifter   # our custom Shifter class
 
 class Stepper:
@@ -74,7 +75,7 @@ class Stepper:
         dir = self.__sgn(delta)        # find the direction (+/-1)
         for s in range(numSteps):      # take the steps
             self.__step(dir)
-            time.sleep(Stepper.delay/1e6)
+            time.sleep((Stepper.delay + random.randint(-100,100))/1e6)
 
     # Move relative angle from current position:
     def rotate(self, delta):
