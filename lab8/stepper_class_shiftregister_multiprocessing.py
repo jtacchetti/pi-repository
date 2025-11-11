@@ -59,7 +59,7 @@ class Stepper:
         self.step_state += dir    # increment/decrement the step
         self.step_state %= 8      # ensure result stays in [0,7]
         mask = 0b1111 << self.shifter_bit_start    # clear bits for this motor
-        pattern = Stepper.seq[self.step_state] << self.shifter_bit.start
+        pattern = Stepper.seq[self.step_state] << self.shifter_bit_start
 
         with self.lock:
             Stepper.shifter_outputs &= ~mask
