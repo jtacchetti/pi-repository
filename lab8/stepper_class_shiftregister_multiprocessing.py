@@ -59,13 +59,12 @@ class Stepper:
         self.step_state += dir    # increment/decrement the step
         self.step_state %= 8      # ensure result stays in [0,7]
         mask = 0b1111 << self.shifter_bit_start    # clear bits for this motor
-        Stepper.shifter_outputs &= ~mask
-        Stepper.shifter_outputs |= (Stepper.seq[self.step_state] << self.shifter_bit_start)
-        self.lock.acquire()
-        try:
+        pattern = Stepper.seq[self.step_state] << self.shifter_bit.start
+
+        with self.lock:
+            Stepper.shifter_outputs &= ~mask
+            Stepper.shifter_outputs |= pattern
             self.s.shiftByte(Stepper.shifter_outputs)
-        finally:
-            self.lock.release()
         self.angle += dir/Stepper.steps_per_degree
         self.angle %= 360         # limit to [0,359.9+] range
 
