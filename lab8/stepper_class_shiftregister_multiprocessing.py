@@ -34,7 +34,7 @@ class Stepper:
 
     # Class attributes:
     num_steppers = 0      # track number of Steppers instantiated
-    shifter_outputs = 0   # track shift register outputs for all motors
+    shifter_outputs = multiprocessing.Value('i',0)   # track shift register outputs for all motors
     seq = [0b0001,0b0011,0b0010,0b0110,0b0100,0b1100,0b1000,0b1001] # CCW sequence
     # delay = 1200          # delay between motor steps [us]
     delay = 500000            # for sanity check of step sequence
@@ -46,13 +46,12 @@ class Stepper:
         self.step_state = 0        # track position in sequence
         self.shifter_bit_start = 4*Stepper.num_steppers  # starting bit position
         self.lock = lock           # multiprocessing lock
+        Stepper.num_steppers += 1   # increment the instance count
 
         self.queue = multiprocessing.Queue()
         self.worker = multiprocessing.Process(target=self.__worker_loop)
         self.worker.daemon = True
         self.worker.start()
-        
-        Stepper.num_steppers += 1   # increment the instance count
 
     # Signum function:
     def __sgn(self, x):
@@ -63,13 +62,19 @@ class Stepper:
     def __step(self, dir):
         self.step_state += dir    # increment/decrement the step
         self.step_state %= 8      # ensure result stays in [0,7]
-
-        mask = 0b1111 << self.shifter_bit_start
-        Stepper.shifter_outputs &= ~mask        # clear the bits for this motor
-        Stepper.shifter_outputs |= Stepper.seq[self.step_state]<<self.shifter_bit_start
-        self.s.shiftByte(Stepper.shifter_outputs)
-        self.angle.value += dir/Stepper.steps_per_degree
-        self.angle.value %= 360         # limit to [0,359.9+] range
+        
+        with Stepper.shifter_outputs.get_lock():
+            current_output = Stepper.shifter_outputs.value
+            mask = 0b1111 << self.shifter_bit_start
+            new_output = (current_output & ~mask) | (Stepper.seq[self.step_state] << self.shifter_bit_start)       # clear the bits for this motor
+            Stepper.shifter_outputs.value = new_output
+            
+        with self.lock:
+            self.s.shiftByte(Stepper.shifter_outputs.value)
+            
+        with self.angle.get_lock():
+            self.angle.value += dir/Stepper.steps_per_degree
+            self.angle.value %= 360         # limit to [0,359.9+] range
 
     # Move relative angle from current position:
     def __rotate(self, delta):
@@ -90,9 +95,10 @@ class Stepper:
         self.queue.put(delta)    # adds rotation command to a queue
 
     # Move to an absolute angle taking the shortest possible path:
-    def goAngle(self, angle):
-        current_angle = self.angle.value
-        delta = (angle - current_angle) % 360 # finds angle between 0 and 360
+    def goAngle(self, target_angle):
+        with self.angle.get_lock():
+            current_angle = self.angle.value
+        delta = (target_angle - current_angle) % 360 # finds angle between 0 and 360
         if delta > 180:        # if greater than 180, make it a negative angle between -180 and 0
             delta -= 360
         self.rotate(delta)    # add rotation to the queue
@@ -101,7 +107,9 @@ class Stepper:
 
     # Set the motor zero point
     def zero(self):
-        self.angle.value = 0.0
+        with self.angle.get_lock():
+            self.angle.value = 0.0
+        self.step_state = 0
 
 
 # Example use:
