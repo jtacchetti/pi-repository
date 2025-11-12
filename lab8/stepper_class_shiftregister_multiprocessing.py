@@ -128,12 +128,12 @@ if __name__ == '__main__':
     m1.zero()
     m2.zero()
     m1.goAngle(90)
-    #m1.goAngle(-45)
+    m1.goAngle(-45)
     m2.goAngle(-90)
-    #m2.goAngle(45)
-    #m1.goAngle(-135)
-    #m1.goAngle(135)
-    #m1.goAngle(0)
+    m2.goAngle(45)
+    m1.goAngle(-135)
+    m1.goAngle(135)
+    m1.goAngle(0)
     # below is old commands
     """
     # Zero the motors:
