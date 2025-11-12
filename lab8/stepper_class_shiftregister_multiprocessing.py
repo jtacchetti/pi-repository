@@ -68,8 +68,6 @@ class Stepper:
             mask = 0b1111 << self.shifter_bit_start
             new_output = (current_output & ~mask) | (Stepper.seq[self.step_state] << self.shifter_bit_start)       # clear the bits for this motor
             Stepper.shifter_outputs.value = new_output
-            
-        with self.lock:
             self.s.shiftByte(Stepper.shifter_outputs.value)
             
         with self.angle.get_lock():
