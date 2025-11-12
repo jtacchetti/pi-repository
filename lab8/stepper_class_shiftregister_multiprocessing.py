@@ -48,7 +48,7 @@ class Stepper:
         self.lock = lock           # multiprocessing lock
         Stepper.num_steppers += 1   # increment the instance count
 
-        self.queue = multiprocessing.Queue()
+        self.queue = multiprocessing.Queue()        # creates queue system for multiple rotate commands
         self.worker = multiprocessing.Process(target=self.__worker_loop)
         self.worker.daemon = True
         self.worker.start()
@@ -63,27 +63,27 @@ class Stepper:
         self.step_state += dir    # increment/decrement the step
         self.step_state %= 8      # ensure result stays in [0,7]
         
-        with Stepper.shifter_outputs.get_lock():
-            current_output = Stepper.shifter_outputs.value
-            mask = 0b1111 << self.shifter_bit_start
+        with Stepper.shifter_outputs.get_lock():                 # requires lock on outputs
+            current_output = Stepper.shifter_outputs.value       # copies old outputs
+            mask = 0b1111 << self.shifter_bit_start              # write 1s for this motor
             new_output = (current_output & ~mask) | (Stepper.seq[self.step_state] << self.shifter_bit_start)       # clear the bits for this motor
-            Stepper.shifter_outputs.value = new_output
-            self.s.shiftByte(Stepper.shifter_outputs.value)
+            Stepper.shifter_outputs.value = new_output           # copy the new output to shared variable
+            self.s.shiftByte(Stepper.shifter_outputs.value)      # execute the output to shift register
             
-        with self.angle.get_lock():
+        with self.angle.get_lock():                              # require lock on angle for this motor
             self.angle.value += dir/Stepper.steps_per_degree
             self.angle.value %= 360         # limit to [0,359.9+] range
 
     # Move relative angle from current position:
     def __rotate(self, delta):
-        with self.lock:
+        with self.lock:                        # require lock for this motor
             numSteps = int(Stepper.steps_per_degree * abs(delta))    # find the right # of steps
             dir = self.__sgn(delta)        # find the direction (+/-1)
             for s in range(numSteps):      # take the steps
                 self.__step(dir)
                 time.sleep(Stepper.delay/1e6)
 
-    def __worker_loop(self):
+    def __worker_loop(self):                # constantly looks for new commands from main code
         while True:
             delta = self.queue.get()
             self.__rotate(delta)
@@ -104,7 +104,7 @@ class Stepper:
          # COMPLETE THIS METHOD FOR LAB 8
 
     # Set the motor zero point
-    def zero(self):
+    def zero(self):                        # set the shared angle for this motor to 0
         with self.angle.get_lock():
             self.angle.value = 0.0
         self.step_state = 0
@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     # Use multiprocessing.Lock() to prevent motors from trying to 
     # execute multiple operations at the same time:
-    lock1 = multiprocessing.Lock()
+    lock1 = multiprocessing.Lock()        # each motor has its own lock
     lock2 = multiprocessing.Lock()
 
     # Instantiate 2 Steppers:
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         while True:
             pass
     except:
-        s.shiftByte(0b00000000)
+        s.shiftByte(0b00000000)        # clear shift register
         time.sleep(0.1)
-        GPIO.cleanup()
+        GPIO.cleanup()                 # cleanup GPIO pins
         print('\nend')
